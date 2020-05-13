@@ -1,12 +1,16 @@
 import org.scalajs.dom
+import org.scalajs.dom.ext.Color
 import org.scalajs.dom.html.Canvas
 import org.scalajs.dom.raw.MouseEvent
 import ui._
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
+
+
 @JSExportTopLevel("Main")
 object Main {
+
 
   @JSExport
   def start(canvas: Canvas): Unit = {
@@ -14,16 +18,24 @@ object Main {
     val ctx = canvas.getContext("2d")
       .asInstanceOf[dom.CanvasRenderingContext2D]
 
+    val textSizeCache = new TextSizeCache(ctx)
+
     val width = 400
     val height = 400
 
     ctx.canvas.width = width
     ctx.canvas.height = height
 
-    var rootUIElement = new UIPanel(BoundingBox(Coordinates(0, 0), Size(width, height)))
-    rootUIElement.children.add(new UIButton("Hello World", BoundingBox(Coordinates(50, 50), Size(100, 100))))
-    rootUIElement.children.add(new UIButton("Hello World", BoundingBox(Coordinates(100, 100), Size(30, 30))))
-    rootUIElement.children.add(new UIButton("Hello World", BoundingBox(Coordinates(300, 300), Size(10, 60))))
+    val font = Font(12, "Verdana")
+    val textStyle = TextColor(
+      normal = Color.Red,
+      highlighted = Color.Yellow
+    )
+
+    var rootUIElement = UIPanel(BoundingBox(Coordinates(0, 0), Size(width, height)), Set(
+      UITextButton(Text("Hello World", textStyle, font), Coordinates(50, 50), textSizeCache),
+      UITextButton(Text("Hello World", textStyle, font), Coordinates(300, 300), textSizeCache)
+    ))
 
     val clickMap = new ClickMap()
     clickMap.recompute(rootUIElement)
@@ -38,23 +50,30 @@ object Main {
     def draw(): Unit = {
 
       def drawUIObject(obj: UIObject): Unit = {
-        if(hoveringClickableElement.contains(obj)) {
-          ctx.fillStyle = "red"
-          ctx.fillRect(
-            obj.boundingBox.coordinates.x,
-            obj.boundingBox.coordinates.y,
-            obj.boundingBox.size.width,
-            obj.boundingBox.size.height
-          )
-        } else {
-          ctx.strokeStyle = "red"
-          ctx.strokeRect(
-            obj.boundingBox.coordinates.x,
-            obj.boundingBox.coordinates.y,
-            obj.boundingBox.size.width,
-            obj.boundingBox.size.height
-          )
+        val Coordinates(x,y) = obj.boundingBox.coordinates
+        val Size(w,h) = obj.boundingBox.size
+
+        obj match {
+          case UITextButton(text, _) =>
+            ctx.font = text.font.css
+
+            text.color.background.foreach { bgColor =>
+              ctx.fillStyle = bgColor.toString()
+              ctx.fillRect(x,y,w,h)
+            }
+
+            if(hoveringClickableElement.contains(obj)) {
+              ctx.fillStyle = text.color.highlighted.toString()
+            } else {
+              ctx.fillStyle = text.color.normal.toString()
+            }
+
+            ctx.fillText(text.text, x, y + h)
+          case UIPanel(_,_) =>
+            ctx.strokeStyle = "red"
+            ctx.strokeRect(x,y,w,h)
         }
+
         obj.children.foreach(drawUIObject)
       }
 

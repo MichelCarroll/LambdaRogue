@@ -1,5 +1,7 @@
 import org.scalajs.dom
 import org.scalajs.dom.html.Canvas
+import org.scalajs.dom.raw.MouseEvent
+
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
 @JSExportTopLevel("Main")
@@ -22,6 +24,10 @@ object Main {
     def draw(): Unit = {
       ctx.fillStyle = "red"
       ctx.fillRect(175, 175, 50, 50)
+    }
+
+    dom.window.onmousemove = { e: MouseEvent =>
+      println(e)
     }
 
     dom.window.setInterval(() => {

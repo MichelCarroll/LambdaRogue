@@ -6,11 +6,8 @@ import ui._
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
-
-
 @JSExportTopLevel("Main")
 object Main {
-
 
   @JSExport
   def start(canvas: Canvas): Unit = {
@@ -32,10 +29,14 @@ object Main {
       highlighted = Color.Yellow
     )
 
-    var rootUIElement = UIPanel(BoundingBox(Coordinates(0, 0), Size(width, height)), Set(
-      UITextButton(Text("Hello World", textStyle, font), Coordinates(50, 50), textSizeCache),
-      UITextButton(Text("Hello World", textStyle, font), Coordinates(300, 300), textSizeCache)
+    var rootUIElement = new UIPanel(Size(width, height), List(
+      new UIStackPanel(List(
+        UITextButton(Text("1. Choose a Fighter", textStyle, font), textSizeCache),
+        UITextButton(Text("2. Choose a Mage", textStyle, font), textSizeCache),
+        UITextButton(Text("3. Choose for me", textStyle, font), textSizeCache)
+      ))
     ))
+    rootUIElement.relayout()
 
     val clickMap = new ClickMap()
     clickMap.recompute(rootUIElement)
@@ -47,14 +48,22 @@ object Main {
 
     var hoveringClickableElement: Option[UIObject] = None
 
+    val drawBoxes = false
+
     def draw(): Unit = {
 
       def drawUIObject(obj: UIObject): Unit = {
-        val Coordinates(x,y) = obj.boundingBox.coordinates
-        val Size(w,h) = obj.boundingBox.size
+        val Coordinates(x,y) = obj.coordinates
+        val Size(w,h) = Size(obj.innerWidth, obj.innerHeight)
+
+        if(drawBoxes) {
+          ctx.strokeStyle = "red"
+          ctx.strokeRect(x,y,w,h)
+        }
 
         obj match {
-          case UITextButton(text, _) =>
+          case elem: UITextButton =>
+            val text = elem.text
             ctx.font = text.font.css
 
             text.color.background.foreach { bgColor =>
@@ -62,17 +71,16 @@ object Main {
               ctx.fillRect(x,y,w,h)
             }
 
-            if(hoveringClickableElement.contains(obj)) {
+            if(hoveringClickableElement.contains(elem)) {
               ctx.fillStyle = text.color.highlighted.toString()
             } else {
               ctx.fillStyle = text.color.normal.toString()
             }
 
-            ctx.fillText(text.text, x, y + h)
-          case UIPanel(_,_) =>
-            ctx.strokeStyle = "red"
-            ctx.strokeRect(x,y,w,h)
+            ctx.fillText(text.text, x + obj.padding.left, y + obj.padding.top + obj.naturalSize.height)
+          case _ =>
         }
+
 
         obj.children.foreach(drawUIObject)
       }

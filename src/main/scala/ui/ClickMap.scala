@@ -9,10 +9,10 @@ class ClickMap(resolution: Int = 5) {
   case class Cell(x: Int, y: Int)
 
   private def objectCells(obj: UIObject): Seq[Cell] = {
-    val minX = obj.boundingBox.coordinates.x / resolution
-    val maxX = ((obj.boundingBox.coordinates.x + obj.boundingBox.size.width) / resolution.toFloat - 1).ceil.toInt
-    val minY = obj.boundingBox.coordinates.y / resolution
-    val maxY = ((obj.boundingBox.coordinates.y + obj.boundingBox.size.height) / resolution.toFloat - 1).ceil.toInt
+    val minX = obj.coordinates.x / resolution
+    val maxX = ((obj.coordinates.x + obj.innerWidth) / resolution.toFloat - 1).ceil.toInt
+    val minY = obj.coordinates.y / resolution
+    val maxY = ((obj.coordinates.y + obj.innerHeight) / resolution.toFloat - 1).ceil.toInt
 
     for {
       cellX <- minX to maxX

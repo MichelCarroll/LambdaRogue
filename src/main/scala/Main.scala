@@ -6,6 +6,13 @@ import ui._
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
+sealed trait Gender
+case object Male extends Gender
+case object Female extends Gender
+
+sealed trait UIAction
+case class ChooseGender(gender: Gender) extends UIAction
+
 @JSExportTopLevel("Main")
 object Main {
 
@@ -16,6 +23,8 @@ object Main {
       .asInstanceOf[dom.CanvasRenderingContext2D]
 
     val textSizeCache = new TextSizeCache(ctx)
+
+    var uiActions: List[UIAction] = List()
 
     val width = 400
     val height = 400
@@ -31,9 +40,8 @@ object Main {
 
     var rootUIElement = new UIPanel(Size(width, height), List(
       new UIStackPanel(List(
-        UITextButton(Text("1. Choose a Fighter", textStyle, font), textSizeCache),
-        UITextButton(Text("2. Choose a Mage", textStyle, font), textSizeCache),
-        UITextButton(Text("3. Choose for me", textStyle, font), textSizeCache)
+        UITextButton(Text("1. Male", textStyle, font), textSizeCache),
+        UITextButton(Text("2. Female", textStyle, font), textSizeCache)
       ))
     ))
     rootUIElement.relayout()
@@ -98,6 +106,10 @@ object Main {
       } else {
         ctx.canvas.style.cursor = "auto"
       }
+    }
+
+    dom.window.onclick = { e: MouseEvent =>
+
     }
 
     dom.window.setInterval(() => {

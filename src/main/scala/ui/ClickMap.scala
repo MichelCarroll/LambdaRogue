@@ -25,7 +25,7 @@ class ClickMap(resolution: Int = 5) {
 
     def recurAddObjects(obj: UIObject): Unit = {
       val cells = objectCells(obj)
-      if(obj.clickable)
+      if(obj.onClick.nonEmpty)
         cells.foreach { cell => elements += cell -> obj }
       obj.children.foreach(recurAddObjects)
     }

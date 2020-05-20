@@ -1,5 +1,6 @@
 package ui
 
+import game.Gender
 import org.scalajs.dom.ext.Color
 
 case class Coordinates(x: Int, y: Int)
@@ -18,22 +19,37 @@ case class TextColor(normal: Color, highlighted: Color, background: Option[Color
 
 case class Text(text: String, color: TextColor, font: Font)
 
+trait LayoutContext {
+  val textSizeCache: TextSizeCache
+}
+
+sealed trait UIAction
+case class ChooseGender(gender: Gender) extends UIAction
+
 sealed trait UIObject {
 
-  def naturalSize: Size
   def children: List[UIObject]
   def padding: Edges = Edges.none
   def margin: Edges = Edges.none
-  def clickable: Boolean = false
-  var coordinates: Coordinates = Coordinates(0,0)
+  def onClick: Option[UIAction] = None
 
-  def relayout(): Unit = {
+  var coordinates: Coordinates = Coordinates(0,0)
+  var naturalSize: Size
+
+  def relayout(context: LayoutContext): Unit = {
+    resize(context)
     children.foreach { child =>
       child.coordinates = Coordinates(
         coordinates.x + padding.left + child.margin.left,
         coordinates.y + padding.top + child.margin.top
       )
-      child.relayout()
+      child.relayout(context)
+    }
+  }
+
+  private[ui] def resize(context: LayoutContext): Unit = {
+    children.foreach { child =>
+      child.resize(context)
     }
   }
 
@@ -45,23 +61,24 @@ sealed trait UIObject {
 
 class UITextButton(
                     val text: Text,
-                    val naturalSize: Size,
+                    val action: UIAction,
                     override val padding: Edges = Edges(5),
                     override val margin: Edges = Edges.none
 ) extends UIObject {
-  override def clickable: Boolean = true
   override def children: List[UIObject] = List.empty
 
+  override def onClick: Option[UIAction] = Some(action)
 
-}
+  override var naturalSize: Size = Size(0,0)
 
-object UITextButton {
-  def apply(text: Text, textSizeCache: TextSizeCache): UITextButton =
-    new UITextButton(text, textSizeCache.get(text))
+  override def resize(context: LayoutContext): Unit = {
+    super.resize(context)
+    naturalSize = context.textSizeCache.get(text)
+  }
 }
 
 class UIPanel(
-               val naturalSize: Size,
+               var naturalSize: Size,
                val children: List[UIObject] = List.empty
 ) extends UIObject
 
@@ -71,22 +88,27 @@ class UIStackPanel(
   override val margin: Edges = Edges.none
 ) extends UIObject {
 
-  lazy val naturalSize = Size(
-    width =
-      if(children.isEmpty) 0
-      else children.map(_.outerWidth).max,
+  var naturalSize = Size(0,0)
 
-    height = children.map(_.outerHeight).sum
-  )
+  override def resize(context: LayoutContext): Unit = {
+    super.resize(context)
 
-  override def relayout(): Unit = {
+    naturalSize = Size(
+      width =
+        if(children.isEmpty) 0
+        else children.map(_.outerWidth).max,
+
+      height = children.map(_.outerHeight).sum
+    )
+  }
+
+  override def relayout(context: LayoutContext): Unit = {
     var accumY = padding.top
     children.foreach { child =>
       child.coordinates = Coordinates(
         coordinates.x + padding.left + child.margin.left,
         accumY + child.margin.top
       )
-
       accumY = accumY + child.outerHeight
     }
   }

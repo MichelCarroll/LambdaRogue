@@ -3,15 +3,9 @@ import org.scalajs.dom.ext.Color
 import org.scalajs.dom.html.Canvas
 import org.scalajs.dom.raw.MouseEvent
 import ui._
+import game._
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
-
-sealed trait Gender
-case object Male extends Gender
-case object Female extends Gender
-
-sealed trait UIAction
-case class ChooseGender(gender: Gender) extends UIAction
 
 @JSExportTopLevel("Main")
 object Main {
@@ -40,11 +34,15 @@ object Main {
 
     var rootUIElement = new UIPanel(Size(width, height), List(
       new UIStackPanel(List(
-        UITextButton(Text("1. Male", textStyle, font), textSizeCache),
-        UITextButton(Text("2. Female", textStyle, font), textSizeCache)
+        new UITextButton(Text("1. Male", textStyle, font), ChooseGender(Male)),
+        new UITextButton(Text("2. Female", textStyle, font), ChooseGender(Female))
       ))
     ))
-    rootUIElement.relayout()
+
+    val relayoutContext = new LayoutContext {
+      override val textSizeCache: TextSizeCache = new TextSizeCache(ctx)
+    }
+    rootUIElement.relayout(relayoutContext)
 
     val clickMap = new ClickMap()
     clickMap.recompute(rootUIElement)
@@ -109,7 +107,13 @@ object Main {
     }
 
     dom.window.onclick = { e: MouseEvent =>
-
+      for {
+        elem <- hoveringClickableElement
+        action <- elem.onClick
+      } {
+        uiActions = action :: uiActions
+        println(uiActions)
+      }
     }
 
     dom.window.setInterval(() => {

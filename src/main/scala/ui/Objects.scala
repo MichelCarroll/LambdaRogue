@@ -1,6 +1,5 @@
 package ui
 
-import game.Gender
 import org.scalajs.dom.ext.Color
 
 case class Coordinates(x: Int, y: Int)
@@ -21,10 +20,11 @@ case class Text(text: String, color: TextColor, font: Font)
 
 trait LayoutContext {
   val textSizeCache: TextSizeCache
+  val width: Int
+  val height: Int
+  val defaultFont: Font
+  val defaultTextColor: TextColor
 }
-
-sealed trait UIAction
-case class ChooseGender(gender: Gender) extends UIAction
 
 sealed trait UIObject {
 
@@ -36,20 +36,20 @@ sealed trait UIObject {
   var coordinates: Coordinates = Coordinates(0,0)
   var naturalSize: Size
 
-  def relayout(context: LayoutContext): Unit = {
-    resize(context)
+  def relayout()(implicit context: LayoutContext): Unit = {
+    resize()
     children.foreach { child =>
       child.coordinates = Coordinates(
         coordinates.x + padding.left + child.margin.left,
         coordinates.y + padding.top + child.margin.top
       )
-      child.relayout(context)
+      child.relayout()
     }
   }
 
-  private[ui] def resize(context: LayoutContext): Unit = {
+  private[ui] def resize()(implicit context: LayoutContext): Unit = {
     children.foreach { child =>
-      child.resize(context)
+      child.resize()
     }
   }
 
@@ -71,8 +71,8 @@ class UITextButton(
 
   override var naturalSize: Size = Size(0,0)
 
-  override def resize(context: LayoutContext): Unit = {
-    super.resize(context)
+  override def resize()(implicit context: LayoutContext): Unit = {
+    super.resize()
     naturalSize = context.textSizeCache.get(text)
   }
 }
@@ -90,8 +90,8 @@ class UIStackPanel(
 
   var naturalSize = Size(0,0)
 
-  override def resize(context: LayoutContext): Unit = {
-    super.resize(context)
+  override def resize()(implicit context: LayoutContext): Unit = {
+    super.resize()
 
     naturalSize = Size(
       width =
@@ -102,7 +102,7 @@ class UIStackPanel(
     )
   }
 
-  override def relayout(context: LayoutContext): Unit = {
+  override def relayout()(implicit context: LayoutContext): Unit = {
     var accumY = padding.top
     children.foreach { child =>
       child.coordinates = Coordinates(

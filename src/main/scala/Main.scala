@@ -16,43 +16,56 @@ object Main {
     val ctx = canvas.getContext("2d")
       .asInstanceOf[dom.CanvasRenderingContext2D]
 
-    val textSizeCache = new TextSizeCache(ctx)
+    ctx.canvas.width = 400
+    ctx.canvas.height = 400
 
-    var uiActions: List[UIAction] = List()
-
-    val width = 400
-    val height = 400
-
-    ctx.canvas.width = width
-    ctx.canvas.height = height
-
-    val font = Font(12, "Verdana")
-    val textStyle = TextColor(
-      normal = Color.Red,
-      highlighted = Color.Yellow
-    )
-
-    var rootUIElement = new UIPanel(Size(width, height), List(
-      new UIStackPanel(List(
-        new UITextButton(Text("1. Male", textStyle, font), ChooseGender(Male)),
-        new UITextButton(Text("2. Female", textStyle, font), ChooseGender(Female))
-      ))
-    ))
-
-    val relayoutContext = new LayoutContext {
+    implicit val relayoutContext = new LayoutContext {
       override val textSizeCache: TextSizeCache = new TextSizeCache(ctx)
+      override val width: Int = ctx.canvas.width
+      override val height: Int = ctx.canvas.height
+      override val defaultFont: Font = Font(12, "Verdana")
+      override val defaultTextColor: TextColor = TextColor(
+        normal = Color.Red,
+        highlighted = Color.Yellow
+      )
     }
-    rootUIElement.relayout(relayoutContext)
 
+    implicit var world = new World
+
+    var uiState: UIState = GenderSelection()
     val clickMap = new ClickMap()
-    clickMap.recompute(rootUIElement)
+
+    var lastMousePosition: Coordinates = Coordinates(0, 0)
+
+    var hoveringClickableElement: Option[UIObject] = None
+
+    def recalculateMouseState(): Unit = {
+      hoveringClickableElement = clickMap.testClick(lastMousePosition)
+      if(hoveringClickableElement.nonEmpty) {
+        ctx.canvas.style.cursor = "pointer"
+      } else {
+        ctx.canvas.style.cursor = "auto"
+      }
+    }
+
+    def recalculateUI(): Unit = {
+      uiState.rootUIElement.relayout()
+      clickMap.recompute(uiState.rootUIElement)
+      recalculateMouseState()
+    }
+
+    def executeAction(action: UIAction): Unit = {
+      uiState = uiState.execute(action)
+      recalculateUI()
+    }
+
+    recalculateUI()
 
     def clear(): Unit = {
       ctx.fillStyle = "black"
       ctx.fillRect(0, 0, 400, 400)
     }
 
-    var hoveringClickableElement: Option[UIObject] = None
 
     val drawBoxes = false
 
@@ -91,19 +104,13 @@ object Main {
         obj.children.foreach(drawUIObject)
       }
 
-      drawUIObject(rootUIElement)
+      drawUIObject(uiState.rootUIElement)
     }
 
 
     dom.window.onmousemove = { e: MouseEvent =>
-      val coordinates = Coordinates(e.clientX.toInt, e.clientY.toInt)
-      hoveringClickableElement = clickMap.testClick(coordinates)
-
-      if(hoveringClickableElement.nonEmpty) {
-        ctx.canvas.style.cursor = "pointer"
-      } else {
-        ctx.canvas.style.cursor = "auto"
-      }
+      lastMousePosition = Coordinates(e.clientX.toInt, e.clientY.toInt)
+      recalculateMouseState()
     }
 
     dom.window.onclick = { e: MouseEvent =>
@@ -111,8 +118,7 @@ object Main {
         elem <- hoveringClickableElement
         action <- elem.onClick
       } {
-        uiActions = action :: uiActions
-        println(uiActions)
+        executeAction(action)
       }
     }
 

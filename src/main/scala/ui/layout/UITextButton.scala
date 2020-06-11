@@ -1,6 +1,8 @@
 package ui.layout
 
-import ui.{Edges, LayoutContext, Size, Text, UIAction}
+import game.World
+import org.scalajs.dom.raw.CanvasRenderingContext2D
+import ui.{Coordinates, Edges, LayoutContext, Size, Text, UIAction}
 
 
 class UITextButton(
@@ -18,5 +20,28 @@ class UITextButton(
   override def resize()(implicit context: LayoutContext): Unit = {
     super.resize()
     naturalSize = context.textSizeCache.get(text)
+  }
+
+  override def draw(debug: Boolean, hoveringClickableElement: Option[UIObject], world: World)
+                   (implicit ctx: CanvasRenderingContext2D): Unit = {
+    val Coordinates(x,y) = coordinates
+    val Size(w,h) = Size(innerWidth, innerHeight)
+
+    ctx.font = text.font.css
+
+    text.color.background.foreach { bgColor =>
+      ctx.fillStyle = bgColor.toString()
+      ctx.fillRect(x,y,w,h)
+    }
+
+    if(hoveringClickableElement.contains(this)) {
+      ctx.fillStyle = text.color.highlighted.toString()
+    } else {
+      ctx.fillStyle = text.color.normal.toString()
+    }
+
+    ctx.fillText(text.text, x + padding.left, y + padding.top + naturalSize.height)
+
+    super.draw(debug, hoveringClickableElement, world)
   }
 }

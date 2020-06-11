@@ -2,8 +2,7 @@ package ui
 
 import game.World
 import org.scalajs.dom.raw.CanvasRenderingContext2D
-import ui.layout.{UIGamePanel, UIObject, UITextButton}
-import game._
+import ui.layout.UIObject
 
 class Canvas()(
   implicit ctx: CanvasRenderingContext2D,
@@ -37,73 +36,8 @@ class Canvas()(
   }
 
   def draw(): Unit = {
-
-    def drawUIObject(obj: UIObject): Unit = {
-      val Coordinates(x,y) = obj.coordinates
-      val Size(w,h) = Size(obj.innerWidth, obj.innerHeight)
-
-      if(drawBoxes) {
-        ctx.strokeStyle = "red"
-        ctx.strokeRect(x,y,w,h)
-      }
-
-      obj match {
-        case elem: UITextButton =>
-          val text = elem.text
-          ctx.font = text.font.css
-
-          text.color.background.foreach { bgColor =>
-            ctx.fillStyle = bgColor.toString()
-            ctx.fillRect(x,y,w,h)
-          }
-
-          if(hoveringClickableElement.contains(elem)) {
-            ctx.fillStyle = text.color.highlighted.toString()
-          } else {
-            ctx.fillStyle = text.color.normal.toString()
-          }
-
-          ctx.fillText(text.text, x + obj.padding.left, y + obj.padding.top + obj.naturalSize.height)
-
-        case elem: UIGamePanel =>
-
-          world.renderMap.foreach { case (zonePosition, instructions) =>
-            val tileSize = 40
-            val tileX = zonePosition.x * tileSize
-            val tileY = zonePosition.y * tileSize
-
-            instructions.foreach {
-              case FullSquare(color) =>
-                ctx.fillStyle = color
-                ctx.fillRect(
-                  x = tileX,
-                  y = tileY,
-                  w = tileSize,
-                  h = tileSize
-                )
-
-              case MediumSquare(color) =>
-                ctx.fillStyle = color
-                ctx.fillRect(
-                  x = tileX + tileSize / 4,
-                  y = tileY + tileSize / 4,
-                  w = tileSize / 2,
-                  h = tileSize / 2
-                )
-            }
-          }
-
-        case _ =>
-
-      }
-
-
-      obj.children.foreach(drawUIObject)
-    }
-
-    drawUIObject(uiState.rootUIElement)
+    uiState.rootUIElement.draw(false, hoveringClickableElement, world)
   }
-
 
   private def recalculateMouseState(): Unit = {
     hoveringClickableElement = clickMap.testClick(lastMousePosition)

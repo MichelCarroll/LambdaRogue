@@ -1,5 +1,8 @@
 package ui
 
+import game.World
+import org.scalajs.dom.raw.CanvasRenderingContext2D
+
 package object layout {
 
 
@@ -28,6 +31,19 @@ package object layout {
       children.foreach { child =>
         child.resize()
       }
+    }
+
+    def draw(debug: Boolean, hoveringClickableElement: Option[UIObject], world: World)
+            (implicit ctx: CanvasRenderingContext2D): Unit = {
+
+      if(debug) {
+        val Coordinates(x,y) = coordinates
+        val Size(w,h) = Size(innerWidth, innerHeight)
+        ctx.strokeStyle = "red"
+        ctx.strokeRect(x,y,w,h)
+      }
+
+      children.foreach(_.draw(debug, hoveringClickableElement, world))
     }
 
     lazy val outerWidth: Int = innerWidth + margin.left + margin.right

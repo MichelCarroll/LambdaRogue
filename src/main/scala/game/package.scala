@@ -9,6 +9,5 @@ package object game {
   case object Nomad extends CharacterBackground
   case object Merchant extends CharacterBackground
 
-
   case class Character(gender: Gender, characterBackground: CharacterBackground)
 }

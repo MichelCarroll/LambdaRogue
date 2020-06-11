@@ -31,6 +31,7 @@ case class BackgroundSelection(implicit val layoutContext: LayoutContext) extend
   override def execute(action: UIAction)(implicit world: World): UIState = action match {
     case ChoosePlayerBackground(background) =>
       world.characterCreation.characterBackground = background
+      world.initialize()
       WorldView()
     case _ =>
       this
@@ -50,5 +51,5 @@ case class WorldView(implicit val layoutContext: LayoutContext) extends UIState 
   override def execute(action: UIAction)(implicit world: World): UIState = action match {
     case _ => this
   }
-  val rootUIElement = new UIPanel(Size(layoutContext.width, layoutContext.height), List())
+  val rootUIElement = new UIGamePanel(Size(layoutContext.width, layoutContext.height))
 }

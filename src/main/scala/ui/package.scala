@@ -1,4 +1,5 @@
 import org.scalajs.dom.ext.Color
+import org.scalajs.dom.raw.CanvasRenderingContext2D
 
 package object ui {
 
@@ -24,5 +25,9 @@ package object ui {
     val height: Int
     val defaultFont: Font
     val defaultTextColor: TextColor
+  }
+
+  trait Drawable {
+    def draw(position: Coordinates, size: Size)(implicit ctx: CanvasRenderingContext2D): Unit
   }
 }

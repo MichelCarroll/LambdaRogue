@@ -63,8 +63,6 @@ class Graph[NodeAttr, EdgeAttr] {
     edgeToIndex(id)
       .map { edgeId =>
         val edge = edges(edgeId)
-        println("IN TO")
-        println(edge)
         edge.from -> edge.attributes
       }
   }
@@ -73,8 +71,6 @@ class Graph[NodeAttr, EdgeAttr] {
     edgeFromIndex(id)
       .map { edgeId =>
         val edge = edges(edgeId)
-        println("IN FROM")
-        println(edge)
         edge.to -> edge.attributes
       }
   }

@@ -23,12 +23,22 @@ package object game {
   sealed trait Entity
   case object Zone extends Entity
 
-  case object GrassTile extends Entity with Visible {
-    def renderLayer = FullSquare("green")
+  sealed trait TileMaterial
+  case object Grass extends TileMaterial
+  case object Dirt extends TileMaterial
+
+  case class Tile(tileMaterial: TileMaterial) extends Entity with Visible {
+    def renderLayer: RenderLayer = tileMaterial match {
+      case Grass => FullSquare("green")
+      case Dirt => FullSquare("brown")
+    }
   }
 
   case class Being(gender: Gender, characterBackground: CharacterBackground) extends Entity with Visible {
-    def renderLayer = MediumSquare("red")
+    def renderLayer: RenderLayer = gender match {
+      case Male => MediumSquare("blue")
+      case Female => MediumSquare("pink")
+    }
   }
 
   sealed trait Relationship

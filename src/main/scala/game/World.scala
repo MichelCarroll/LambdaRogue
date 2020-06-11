@@ -1,7 +1,26 @@
 package game
 
+import ui.{Coordinates, Size}
 import scala.collection.mutable
 
+class ZoneBuilder(graph: WorldGraph) {
+
+  val zoneId: NodeID = graph.add(Zone)
+
+  def square(position: Coordinates, size: Size): Unit = {
+    for {
+      _x <- position.x until position.x + size.width
+      _y <- position.y until position.y + size.height
+    } {
+      graph.add(
+        zoneId,
+        PositionedAt(ZonePosition(_x,_y)),
+        graph.add(Tile(Grass))
+      )
+    }
+  }
+
+}
 
 class World {
 
@@ -13,42 +32,43 @@ class World {
 
   var currentZoneId: Option[NodeID] = None
 
+  private def tileAt(zoneId: NodeID, zonePosition: ZonePosition): Option[NodeID] =
+    graph.from(zoneId).collectFirst {
+      case (tileId, PositionedAt(pos)) if pos == zonePosition =>
+        tileId
+    }
+
   def initialize(): Unit = {
     updateGraph { graph =>
-      val zone = graph.add(Zone)
-      val tile = graph.add(GrassTile)
-      graph.add(zone, PositionedAt(ZonePosition(1,1)), tile)
 
-      currentZoneId = Some(zone)
+      val builder = new ZoneBuilder(graph)
+      builder.square(Coordinates(2,2), Size(5,5))
+      currentZoneId = Some(builder.zoneId)
 
-      val character = graph.add(characterCreation.build())
-      graph.add(character, On, tile)
+      tileAt(builder.zoneId, ZonePosition(4,4)).foreach { tileId =>
+        val character = graph.add(characterCreation.build())
+        graph.add(character, On, tileId)
+      }
+
     }
   }
 
   private def updateRenderMap(): Unit = {
     currentZoneId.foreach { zoneId =>
 
+      renderMap.clear()
+
       def updateAtPosition(zonePosition: ZonePosition, parentNodeId: NodeID): Unit = {
-        println("CALLING TO")
-        println(zonePosition)
         graph.to(parentNodeId).collect {
           case (id, On) =>
-            println("TRYING TO MAKE THIS VISIBLE")
-            println(id)
             graph.at(id) match {
               case visible: Visible =>
-                println("ITS VISIBLE")
-                println(visible)
-                println(visible.renderLayer)
                 renderMap(zonePosition).append(visible.renderLayer)
               case _ =>
             }
         }
       }
 
-      renderMap.clear()
-      println("CALLING FROM")
       graph.from(zoneId).collect {
         case (toId, PositionedAt(zonePosition)) =>
           graph.at(toId) match {

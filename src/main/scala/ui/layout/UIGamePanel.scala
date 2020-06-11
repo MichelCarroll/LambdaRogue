@@ -8,8 +8,8 @@ import ui.Size
 class UIGamePanel(var naturalSize: Size) extends UIObject {
   val children: List[UIObject] = List.empty
 
-  override def draw(debug: Boolean, hoveringClickableElement: Option[UIObject], world: World)
-                   (implicit ctx: CanvasRenderingContext2D): Unit = {
+  override def draw(debug: Boolean, hoveringClickableElement: Option[UIObject])
+                   (implicit ctx: CanvasRenderingContext2D, world: World): Unit = {
 
     world.renderMap.foreach { case (zonePosition, instructions) =>
       val tileSize = 40
@@ -37,6 +37,6 @@ class UIGamePanel(var naturalSize: Size) extends UIObject {
       }
     }
 
-    super.draw(debug, hoveringClickableElement, world)
+    super.draw(debug, hoveringClickableElement)
   }
 }

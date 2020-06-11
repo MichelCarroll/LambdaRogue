@@ -19,8 +19,8 @@ object Main {
 
     implicit val relayoutContext: LayoutContext = new LayoutContext {
       override val textSizeCache: TextSizeCache = new TextSizeCache(ctx)
-      override val width: Int = ctx.canvas.width
-      override val height: Int = ctx.canvas.height
+      override val width: Int = 400
+      override val height: Int = 400
       override val defaultFont: Font = Font(12, "Verdana")
       override val defaultTextColor: TextColor = TextColor(
         normal = Color.Red,

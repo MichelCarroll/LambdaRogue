@@ -33,8 +33,8 @@ package object layout {
       }
     }
 
-    def draw(debug: Boolean, hoveringClickableElement: Option[UIObject], world: World)
-            (implicit ctx: CanvasRenderingContext2D): Unit = {
+    def draw(debug: Boolean, hoveringClickableElement: Option[UIObject])
+            (implicit ctx: CanvasRenderingContext2D, world: World): Unit = {
 
       if(debug) {
         val Coordinates(x,y) = coordinates
@@ -43,7 +43,7 @@ package object layout {
         ctx.strokeRect(x,y,w,h)
       }
 
-      children.foreach(_.draw(debug, hoveringClickableElement, world))
+      children.foreach(_.draw(debug, hoveringClickableElement))
     }
 
     lazy val outerWidth: Int = innerWidth + margin.left + margin.right

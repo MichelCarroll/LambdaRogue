@@ -22,8 +22,8 @@ class UITextButton(
     naturalSize = context.textSizeCache.get(text)
   }
 
-  override def draw(debug: Boolean, hoveringClickableElement: Option[UIObject], world: World)
-                   (implicit ctx: CanvasRenderingContext2D): Unit = {
+  override def draw(debug: Boolean, hoveringClickableElement: Option[UIObject])
+                   (implicit ctx: CanvasRenderingContext2D, world: World): Unit = {
     val Coordinates(x,y) = coordinates
     val Size(w,h) = Size(innerWidth, innerHeight)
 
@@ -42,6 +42,6 @@ class UITextButton(
 
     ctx.fillText(text.text, x + padding.left, y + padding.top + naturalSize.height)
 
-    super.draw(debug, hoveringClickableElement, world)
+    super.draw(debug, hoveringClickableElement)
   }
 }

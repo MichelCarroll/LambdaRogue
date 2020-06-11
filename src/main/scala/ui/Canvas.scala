@@ -32,11 +32,11 @@ class Canvas()(
 
   def clear(): Unit = {
     ctx.fillStyle = "black"
-    ctx.fillRect(0, 0, 400, 400)
+    ctx.fillRect(0, 0, layoutContext.width, layoutContext.height)
   }
 
   def draw(): Unit = {
-    uiState.rootUIElement.draw(false, hoveringClickableElement, world)
+    uiState.rootUIElement.draw(debug = false, hoveringClickableElement)
   }
 
   private def recalculateMouseState(): Unit = {
@@ -59,8 +59,8 @@ class Canvas()(
     recalculateUI()
   }
 
-  ctx.canvas.width = 400
-  ctx.canvas.height = 400
+  ctx.canvas.width = layoutContext.width
+  ctx.canvas.height = layoutContext.height
 
   recalculateUI()
 }

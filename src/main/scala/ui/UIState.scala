@@ -1,6 +1,7 @@
 package ui
 
 import game._
+import game.actions.MoveCharacter
 import ui.layout._
 
 sealed trait UIState {
@@ -49,6 +50,9 @@ case class BackgroundSelection(implicit val layoutContext: LayoutContext) extend
 
 case class WorldView(implicit val layoutContext: LayoutContext) extends UIState {
   override def execute(action: UIAction)(implicit world: World): UIState = action match {
+    case Move(dir) =>
+      world.execute(MoveCharacter(dir))
+      this
     case _ => this
   }
   val rootUIElement = new UIGamePanel(Size(layoutContext.width, layoutContext.height))

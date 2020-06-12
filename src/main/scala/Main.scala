@@ -1,7 +1,7 @@
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
 import org.scalajs.dom.html.{Canvas => HtmlCanvas}
-import org.scalajs.dom.raw.MouseEvent
+import org.scalajs.dom.raw.{KeyboardEvent, MouseEvent}
 import ui._
 import game._
 
@@ -44,6 +44,14 @@ object Main {
       canvas.clear()
       canvas.draw()
     }, 50)
+
+    dom.window.onkeydown = { e: KeyboardEvent =>
+      canvas.keyDown(e.keyCode)
+    }
+
+    dom.window.onkeyup = { e: KeyboardEvent =>
+      canvas.keyUp(e.keyCode)
+    }
   }
 
 }

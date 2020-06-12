@@ -39,11 +39,11 @@ trait GraphQuerying {
     }
 
     def queryFrom(nodeId: NodeID)(f: PartialFunction[(EdgeID, NodeID), Unit]): Unit = {
-      graph.edgeFromIndex(nodeId).foreach(edgeId => f.lift(edgeId, graph.edges(edgeId).to))
+      graph.edgeFromIndex(nodeId).toSeq.foreach(edgeId => f.lift(edgeId, graph.edges(edgeId).to))
     }
 
     def queryTo(nodeId: NodeID)(f: PartialFunction[(NodeID, EdgeID), Unit]): Unit = {
-      graph.edgeToIndex(nodeId).foreach(edgeId => f.lift(graph.edges(edgeId).from, edgeId))
+      graph.edgeToIndex(nodeId).toSeq.foreach(edgeId => f.lift(graph.edges(edgeId).from, edgeId))
     }
 
     object From {

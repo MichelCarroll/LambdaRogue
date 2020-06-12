@@ -1,5 +1,6 @@
 package game.actions
 
-sealed trait GameAction {
+import common._
 
-}
+sealed trait GameAction
+case class MoveCharacter(direction: Direction) extends GameAction

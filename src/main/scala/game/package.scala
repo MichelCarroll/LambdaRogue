@@ -1,8 +1,18 @@
 import graph.Graph
 
+import common._
+
 package object game {
 
-  case class ZonePosition(x: Int, y: Int)
+  case class ZonePosition(x: Int, y: Int) {
+    def displace(direction: Direction): ZonePosition =
+      direction match {
+        case Up => copy(y = y - 1)
+        case Down => copy(y = y + 1)
+        case Right => copy(x = x + 1)
+        case Left => copy(x = x - 1)
+      }
+  }
 
   sealed trait RenderLayer
   case class MediumSquare(color: String) extends RenderLayer

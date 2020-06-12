@@ -1,5 +1,6 @@
 package game
 
+import game.actions.{GameAction, MoveCharacter}
 import graph.{GraphQuerying, NodeID}
 import ui.{Coordinates, Size}
 
@@ -33,6 +34,7 @@ class World extends GraphQuerying {
     mutable.Map[ZonePosition, mutable.ArrayBuffer[RenderLayer]]()
 
   var currentZoneId: Option[NodeID] = None
+  var currentCharacter: Option[NodeID] = None
 
   def initialize(): Unit = {
     updateGraph { graph =>
@@ -44,9 +46,32 @@ class World extends GraphQuerying {
       graph.queryFrom(builder.zoneId) {
         case graph.To(_, PositionsAt(ZonePosition(4,4)), tileId, _) =>
           val character = graph.add(characterCreation.build())
+          currentCharacter = Some(character)
           graph.add(character, On, tileId)
       }
     }
+  }
+
+  def execute(gameAction: GameAction): Unit = gameAction match {
+    case MoveCharacter(direction) =>
+      updateGraph { graph =>
+        (currentCharacter, currentZoneId) match {
+          case (Some(charId), Some(zoneId)) =>
+            graph.queryFrom(charId) {
+              case graph.To(edgeId, On, oldTileId, _) =>
+                graph.remove(edgeId)
+                graph.queryFrom(zoneId) {
+                  case graph.To(_, PositionsAt(zonePosition), `oldTileId`, _) =>
+                    val newPosition = zonePosition.displace(direction)
+                    graph.queryFrom(zoneId) {
+                      case graph.To(_, PositionsAt(`newPosition`), newTileId, _) =>
+                        graph.add(charId, On, newTileId)
+                    }
+                }
+            }
+          case _ =>
+        }
+      }
   }
 
   private def updateRenderMap(): Unit = {

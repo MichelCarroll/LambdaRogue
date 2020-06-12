@@ -34,52 +34,34 @@ trait GraphQuerying {
     }
 
 
-    def query(f: PartialFunction[(NodeID, EdgeID, NodeID), Unit]): Unit = {
-      graph.edges.foreach(edge => f.lift(edge._2.from, edge._1, edge._2.to))
+    private def mapToResult(edgeId: EdgeID): Result = {
+      val edge = graph.edges(edgeId)
+      Result(
+        edge.from,
+        graph.nodes(edge.from).attributes,
+        edgeId,
+        edge.attributes,
+        edge.to,
+        graph.nodes(edge.to).attributes
+      )
     }
 
-    def queryFrom(nodeId: NodeID)(f: PartialFunction[(EdgeID, NodeID), Unit]): Unit = {
-      graph.edgeFromIndex(nodeId).toSeq.foreach(edgeId => f.lift(edgeId, graph.edges(edgeId).to))
+    def queryFrom(nodeId: NodeID): Iterable[Result] = {
+      graph.edgeFromIndex(nodeId).map(mapToResult)
     }
 
-    def queryTo(nodeId: NodeID)(f: PartialFunction[(NodeID, EdgeID), Unit]): Unit = {
-      graph.edgeToIndex(nodeId).toSeq.foreach(edgeId => f.lift(graph.edges(edgeId).from, edgeId))
+    def queryTo(nodeId: NodeID): Iterable[Result] = {
+      graph.edgeToIndex(nodeId).map(mapToResult)
     }
 
-    object From {
-      def unapply[Edge](arg: (NodeID, EdgeID)): Option[(NodeID, NodeAttr, EdgeID, EdgeAttr)] = {
-        Some(
-          arg._1,
-          graph.at(arg._1),
-          arg._2,
-          graph.at(arg._2)
-        )
-      }
-    }
-
-    object To {
-      def unapply[Edge](arg: (EdgeID, NodeID)): Option[(EdgeID, EdgeAttr, NodeID, NodeAttr)] = {
-        Some(
-          arg._1,
-          graph.at(arg._1),
-          arg._2,
-          graph.at(arg._2)
-        )
-      }
-    }
-
-    object FromTo {
-      def unapply[Edge](arg: (NodeID, EdgeID, NodeID)): Option[(NodeID, NodeAttr, EdgeID, EdgeAttr, NodeID, NodeAttr)] = {
-        Some(
-          arg._1,
-          graph.at(arg._1),
-          arg._2,
-          graph.at(arg._2),
-          arg._3,
-          graph.at(arg._3)
-        )
-      }
-    }
+    case class Result(
+       fromId: NodeID,
+       from: NodeAttr,
+       edgeId: EdgeID,
+       edge: EdgeAttr,
+       toId: NodeID,
+       to: NodeAttr,
+     )
 
   }
 

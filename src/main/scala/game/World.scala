@@ -29,7 +29,7 @@ class World extends GraphQuerying {
 
   private val graph = new WorldGraph
   var characterCreation = new CharacterCreation
-
+  val R = graph.Result
   val renderMap: mutable.Map[ZonePosition, mutable.ArrayBuffer[RenderLayer]] =
     mutable.Map[ZonePosition, mutable.ArrayBuffer[RenderLayer]]()
 
@@ -37,14 +37,13 @@ class World extends GraphQuerying {
   var currentCharacter: Option[NodeID] = None
 
   def initialize(): Unit = {
-    updateGraph { graph =>
-
+    updateGraph { () =>
       val builder = new ZoneBuilder(graph)
       builder.square(Coordinates(2,2), Size(5,5))
       currentZoneId = Some(builder.zoneId)
 
-      graph.queryFrom(builder.zoneId) {
-        case graph.To(_, PositionsAt(ZonePosition(4,4)), tileId, _) =>
+      graph.queryFrom(builder.zoneId).collect {
+        case R(_, _, _, PositionsAt(ZonePosition(4,4)), tileId, _) =>
           val character = graph.add(characterCreation.build())
           currentCharacter = Some(character)
           graph.add(character, On, tileId)
@@ -54,20 +53,28 @@ class World extends GraphQuerying {
 
   def execute(gameAction: GameAction): Unit = gameAction match {
     case MoveCharacter(direction) =>
-      updateGraph { graph =>
+      updateGraph { () =>
+
         (currentCharacter, currentZoneId) match {
           case (Some(charId), Some(zoneId)) =>
-            graph.queryFrom(charId) {
-              case graph.To(edgeId, On, oldTileId, _) =>
-                graph.remove(edgeId)
-                graph.queryFrom(zoneId) {
-                  case graph.To(_, PositionsAt(zonePosition), `oldTileId`, _) =>
-                    val newPosition = zonePosition.displace(direction)
-                    graph.queryFrom(zoneId) {
-                      case graph.To(_, PositionsAt(`newPosition`), newTileId, _) =>
-                        graph.add(charId, On, newTileId)
-                    }
-                }
+            for {
+              R(_,_,edgeId,_,oldTileId,_) <- graph
+                .queryFrom(charId)
+                .filter(_.edge == On)
+
+              R(_,_,_,PositionsAt(zonePosition),_,_) <- graph
+                .queryFrom(zoneId)
+                .filter(_.toId == oldTileId)
+
+              newPosition = zonePosition.displace(direction)
+
+              R(_,_,_,_,newTileId,_) <- graph
+                .queryFrom(zoneId)
+                .filter(_.edge == PositionsAt(newPosition))
+
+            } yield {
+              graph.remove(edgeId)
+              graph.add(charId, On, newTileId)
             }
           case _ =>
         }
@@ -80,14 +87,17 @@ class World extends GraphQuerying {
       renderMap.clear()
 
       def updateAtPosition(zonePosition: ZonePosition, tileId: NodeID): Unit = {
-        graph.queryTo(tileId) {
-          case graph.From(_ , visible: Visible, _, On) =>
-            renderMap(zonePosition).append(visible.renderLayer)
-        }
+        graph.queryTo(tileId)
+          .filter(_.edge == On)
+          .map(_.from)
+          .collect {
+            case visible: Visible =>
+              renderMap(zonePosition).append(visible.renderLayer)
+          }
       }
 
-      graph.queryFrom(zoneId) {
-        case graph.To( _, PositionsAt(zonePosition), id, visible: Visible) =>
+      graph.queryFrom(zoneId).collect {
+        case R(_,_,_,PositionsAt(zonePosition), id, visible: Visible) =>
           val buffer = new mutable.ArrayBuffer[RenderLayer]()
           buffer.append(visible.renderLayer)
           renderMap.update(zonePosition, buffer)
@@ -96,8 +106,8 @@ class World extends GraphQuerying {
     }
   }
 
-  def updateGraph(f: WorldGraph => Unit): Unit = {
-    f(graph)
+  def updateGraph(f: () => Unit): Unit = {
+    f()
     updateRenderMap()
   }
 

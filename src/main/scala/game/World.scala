@@ -1,6 +1,8 @@
 package game
 
+import graph.{GraphQuerying, NodeID}
 import ui.{Coordinates, Size}
+
 import scala.collection.mutable
 
 class ZoneBuilder(graph: WorldGraph) {
@@ -14,7 +16,7 @@ class ZoneBuilder(graph: WorldGraph) {
     } {
       graph.add(
         zoneId,
-        PositionedAt(ZonePosition(_x,_y)),
+        PositionsAt(ZonePosition(_x,_y)),
         graph.add(Tile(Grass))
       )
     }
@@ -22,7 +24,7 @@ class ZoneBuilder(graph: WorldGraph) {
 
 }
 
-class World {
+class World extends GraphQuerying {
 
   private val graph = new WorldGraph
   var characterCreation = new CharacterCreation
@@ -32,12 +34,6 @@ class World {
 
   var currentZoneId: Option[NodeID] = None
 
-  private def tileAt(zoneId: NodeID, zonePosition: ZonePosition): Option[NodeID] =
-    graph.from(zoneId).collectFirst {
-      case (tileId, PositionedAt(pos)) if pos == zonePosition =>
-        tileId
-    }
-
   def initialize(): Unit = {
     updateGraph { graph =>
 
@@ -45,11 +41,11 @@ class World {
       builder.square(Coordinates(2,2), Size(5,5))
       currentZoneId = Some(builder.zoneId)
 
-      tileAt(builder.zoneId, ZonePosition(4,4)).foreach { tileId =>
-        val character = graph.add(characterCreation.build())
-        graph.add(character, On, tileId)
+      graph.queryFrom(builder.zoneId) {
+        case graph.To(_, PositionsAt(ZonePosition(4,4)), tileId, _) =>
+          val character = graph.add(characterCreation.build())
+          graph.add(character, On, tileId)
       }
-
     }
   }
 
@@ -58,27 +54,19 @@ class World {
 
       renderMap.clear()
 
-      def updateAtPosition(zonePosition: ZonePosition, parentNodeId: NodeID): Unit = {
-        graph.to(parentNodeId).collect {
-          case (id, On) =>
-            graph.at(id) match {
-              case visible: Visible =>
-                renderMap(zonePosition).append(visible.renderLayer)
-              case _ =>
-            }
+      def updateAtPosition(zonePosition: ZonePosition, tileId: NodeID): Unit = {
+        graph.queryTo(tileId) {
+          case graph.From(_ , visible: Visible, _, On) =>
+            renderMap(zonePosition).append(visible.renderLayer)
         }
       }
 
-      graph.from(zoneId).collect {
-        case (toId, PositionedAt(zonePosition)) =>
-          graph.at(toId) match {
-            case visible: Visible =>
-              val buffer = new mutable.ArrayBuffer[RenderLayer]()
-              buffer.append(visible.renderLayer)
-              renderMap.update(zonePosition, buffer)
-              updateAtPosition(zonePosition, toId)
-            case _ =>
-          }
+      graph.queryFrom(zoneId) {
+        case graph.To( _, PositionsAt(zonePosition), id, visible: Visible) =>
+          val buffer = new mutable.ArrayBuffer[RenderLayer]()
+          buffer.append(visible.renderLayer)
+          renderMap.update(zonePosition, buffer)
+          updateAtPosition(zonePosition, id)
       }
     }
   }

@@ -1,3 +1,4 @@
+import graph.Graph
 
 package object game {
 
@@ -43,7 +44,7 @@ package object game {
 
   sealed trait Relationship
   case object On extends Relationship
-  case class PositionedAt(zonePosition: ZonePosition) extends Relationship
+  case class PositionsAt(zonePosition: ZonePosition) extends Relationship
 
   type WorldGraph = Graph[Entity, Relationship]
 }

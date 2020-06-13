@@ -7,8 +7,8 @@ import game._
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
-@JSExportTopLevel("Main")
-object Main {
+@JSExportTopLevel("Game")
+object Game {
 
   @JSExport
   def start(htmlCanvasElement: HtmlCanvas): Unit = {

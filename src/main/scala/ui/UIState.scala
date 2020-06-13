@@ -3,6 +3,7 @@ package ui
 import game._
 import game.actions.MoveCharacter
 import ui.layout._
+import common._
 
 sealed trait UIState {
   def execute(action: UIAction)(implicit world: World): UIState

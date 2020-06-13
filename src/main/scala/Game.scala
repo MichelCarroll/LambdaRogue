@@ -4,6 +4,7 @@ import org.scalajs.dom.html.{Canvas => HtmlCanvas}
 import org.scalajs.dom.raw.{KeyboardEvent, MouseEvent}
 import ui._
 import game._
+import common._
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 

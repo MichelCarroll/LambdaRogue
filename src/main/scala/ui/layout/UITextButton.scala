@@ -2,8 +2,8 @@ package ui.layout
 
 import game.World
 import org.scalajs.dom.raw.CanvasRenderingContext2D
-import ui.{Coordinates, Edges, LayoutContext, Size, Text, UIAction}
-
+import ui.{Edges, LayoutContext, Text, UIAction}
+import common._
 
 class UITextButton(
                     val text: Text,

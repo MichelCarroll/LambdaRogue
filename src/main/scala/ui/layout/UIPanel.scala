@@ -1,7 +1,6 @@
 package ui.layout
 
-import ui.Size
-
+import common._
 
 class UIPanel(
                var naturalSize: Size,

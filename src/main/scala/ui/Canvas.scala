@@ -71,6 +71,7 @@ class Canvas()(
     uiState.rootUIElement.relayout()
     clickMap.recompute(uiState.rootUIElement)
     recalculateMouseState()
+    draw()
   }
 
   private def executeAction(action: UIAction): Unit = {

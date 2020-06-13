@@ -1,10 +1,9 @@
 import org.scalajs.dom.ext.Color
 import org.scalajs.dom.raw.CanvasRenderingContext2D
+import common._
 
 package object ui {
 
-  case class Coordinates(x: Int, y: Int)
-  case class Size(width: Int, height: Int)
   case class Edges(top: Int = 0, right: Int = 0, bottom: Int = 0, left: Int = 0)
   object Edges {
     val none = Edges()
@@ -28,6 +27,6 @@ package object ui {
   }
 
   trait Drawable {
-    def draw(position: Coordinates, size: Size)(implicit ctx: CanvasRenderingContext2D): Unit
+    def draw(area: Area)(implicit ctx: CanvasRenderingContext2D): Unit
   }
 }

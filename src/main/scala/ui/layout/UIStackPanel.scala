@@ -1,7 +1,7 @@
 package ui.layout
 
-import ui.{Coordinates, Edges, LayoutContext, Size}
-
+import ui.{Edges, LayoutContext}
+import common._
 
 class UIStackPanel(
                     val children: List[UIObject],

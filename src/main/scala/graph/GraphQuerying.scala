@@ -4,7 +4,7 @@ import scala.collection.{Iterable, Set}
 
 trait GraphQuerying {
 
-  implicit class GraphPimp[NodeAttr, EdgeAttr](graph: Graph[NodeAttr, EdgeAttr]) {
+  implicit class GraphPimp[NodeAttr, EdgeAttr](val graph: Graph[NodeAttr, EdgeAttr]) {
 
     def nodeCount: Int = graph.nodes.size
     def edgeCount: Int = graph.edges.size
@@ -13,8 +13,8 @@ trait GraphQuerying {
       graph.nodes(id).attributes
     }
 
-    def at(id: EdgeID): EdgeAttr = {
-      graph.edges(id).attributes
+    def at(id: EdgeID): graph.Edge = {
+      graph.edges(id)
     }
 
     def to(id: NodeID): Set[(NodeID, EdgeAttr)] = {

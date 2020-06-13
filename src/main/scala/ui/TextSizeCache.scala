@@ -1,7 +1,7 @@
 package ui
 
 import org.scalajs.dom.CanvasRenderingContext2D
-
+import common._
 import scala.collection.mutable
 
 

@@ -7,7 +7,14 @@ import scala.collection._
 case class NodeID(value: UUID = UUID.randomUUID())
 case class EdgeID(value: UUID = UUID.randomUUID())
 
-class Graph[NodeAttr, EdgeAttr] {
+trait GraphLike[NodeAttr, EdgeAttr] {
+  def add(attributes: NodeAttr): NodeID
+  def add(from: NodeID, attributes: EdgeAttr, to: NodeID): EdgeID
+  def remove(id: NodeID): Unit
+  def remove(id: EdgeID): Unit
+}
+
+class Graph[NodeAttr, EdgeAttr] extends GraphLike[NodeAttr, EdgeAttr] {
 
   case class Node(attributes: NodeAttr)
   case class Edge(from: NodeID, to: NodeID, attributes: EdgeAttr)

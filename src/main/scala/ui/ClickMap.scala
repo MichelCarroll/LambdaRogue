@@ -2,6 +2,7 @@ package ui
 
 import ui.layout.UIObject
 import scala.collection.mutable
+import common._
 
 class ClickMap(resolution: Int = 5) {
 

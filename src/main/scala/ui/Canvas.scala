@@ -8,7 +8,7 @@ import common._
 
 class Canvas()(
   implicit ctx: CanvasRenderingContext2D,
-  layoutContext: LayoutContext,
+  gameSettings: GameSettings,
   world: World) {
 
   var uiState: UIState = GenderSelection()
@@ -43,7 +43,7 @@ class Canvas()(
 
   def clear(): Unit = {
     ctx.fillStyle = "black"
-    ctx.fillRect(0, 0, layoutContext.width, layoutContext.height)
+    ctx.fillRect(0, 0, gameSettings.canvasSize.width, gameSettings.canvasSize.height)
   }
 
   def draw(): Unit = {
@@ -71,8 +71,8 @@ class Canvas()(
     recalculateUI()
   }
 
-  ctx.canvas.width = layoutContext.width
-  ctx.canvas.height = layoutContext.height
+  ctx.canvas.width = gameSettings.canvasSize.width
+  ctx.canvas.height = gameSettings.canvasSize.height
 
   recalculateUI()
 }

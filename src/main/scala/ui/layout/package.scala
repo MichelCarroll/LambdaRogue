@@ -17,7 +17,7 @@ package object layout {
     var coordinates: Coordinates = Coordinates(0,0)
     var naturalSize: Size
 
-    def relayout()(implicit context: LayoutContext): Unit = {
+    def relayout()(implicit gameSettings: GameSettings): Unit = {
       resize()
       children.foreach { child =>
         child.coordinates = Coordinates(
@@ -28,7 +28,7 @@ package object layout {
       }
     }
 
-    private[ui] def resize()(implicit context: LayoutContext): Unit = {
+    private[ui] def resize()(implicit gameSettings: GameSettings): Unit = {
       children.foreach { child =>
         child.resize()
       }

@@ -10,7 +10,7 @@ sealed trait UIState {
   val rootUIElement: UIObject
 }
 
-case class GenderSelection(implicit val layoutContext: LayoutContext) extends UIState {
+case class GenderSelection(implicit val gameSettings: GameSettings) extends UIState {
 
   override def execute(action: UIAction)(implicit world: World): UIState = action match {
     case ChooseGender(gender) =>
@@ -20,7 +20,7 @@ case class GenderSelection(implicit val layoutContext: LayoutContext) extends UI
       this
   }
 
-  val rootUIElement = new UIPanel(Size(layoutContext.width, layoutContext.height), List(
+  val rootUIElement = new UIPanel(gameSettings.canvasSize, List(
     CommonLayouts.simpleList(List(
       "Male" -> ChooseGender(Male),
       "Female" -> ChooseGender(Female)
@@ -29,7 +29,7 @@ case class GenderSelection(implicit val layoutContext: LayoutContext) extends UI
 
 }
 
-case class BackgroundSelection(implicit val layoutContext: LayoutContext) extends UIState {
+case class BackgroundSelection(implicit val gameSettings: GameSettings) extends UIState {
   override def execute(action: UIAction)(implicit world: World): UIState = action match {
     case ChoosePlayerBackground(background) =>
       world.characterCreation.characterBackground = background
@@ -39,7 +39,7 @@ case class BackgroundSelection(implicit val layoutContext: LayoutContext) extend
       this
   }
 
-  val rootUIElement = new UIPanel(Size(layoutContext.width, layoutContext.height), List(
+  val rootUIElement = new UIPanel(gameSettings.canvasSize, List(
     CommonLayouts.simpleList(List(
       "Soldier" -> ChoosePlayerBackground(Soldier),
       "Nomad" -> ChoosePlayerBackground(Nomad),
@@ -49,12 +49,12 @@ case class BackgroundSelection(implicit val layoutContext: LayoutContext) extend
 
 }
 
-case class WorldView(implicit val layoutContext: LayoutContext) extends UIState {
+case class WorldView(implicit val gameSettings: GameSettings) extends UIState {
   override def execute(action: UIAction)(implicit world: World): UIState = action match {
     case Move(dir) =>
       world.execute(MoveCharacter(dir))
       this
     case _ => this
   }
-  val rootUIElement = new UIGamePanel(Size(layoutContext.width, layoutContext.height))
+  val rootUIElement = new UIGamePanel(gameSettings.tileSize, gameSettings.canvasSize)
 }

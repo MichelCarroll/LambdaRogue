@@ -18,14 +18,6 @@ package object ui {
 
   case class Text(text: String, color: TextColor, font: Font)
 
-  trait LayoutContext {
-    val textSizeCache: TextSizeCache
-    val width: Int
-    val height: Int
-    val defaultFont: Font
-    val defaultTextColor: TextColor
-  }
-
   trait Drawable {
     def draw(area: Area)(implicit ctx: CanvasRenderingContext2D): Unit
   }

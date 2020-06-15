@@ -2,7 +2,7 @@ package ui.layout
 
 import game.World
 import org.scalajs.dom.raw.CanvasRenderingContext2D
-import ui.{Edges, LayoutContext, Text, UIAction}
+import ui.{Edges, Text, UIAction}
 import common._
 
 class UITextButton(
@@ -17,7 +17,7 @@ class UITextButton(
 
   override var naturalSize: Size = Size(0,0)
 
-  override def resize()(implicit context: LayoutContext): Unit = {
+  override def resize()(implicit context: GameSettings): Unit = {
     super.resize()
     naturalSize = context.textSizeCache.get(text)
   }

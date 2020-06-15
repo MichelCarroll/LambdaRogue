@@ -19,21 +19,20 @@ object Game extends PerformanceTesting {
       htmlCanvasElement.getContext("2d")
         .asInstanceOf[dom.CanvasRenderingContext2D]
 
-    implicit val relayoutContext: LayoutContext = new LayoutContext {
-      override val textSizeCache: TextSizeCache = new TextSizeCache(ctx)
-      override val width: Int = 400
-      override val height: Int = 400
-      override val defaultFont: Font = Font(12, "Verdana")
-      override val defaultTextColor: TextColor = TextColor(
+    implicit val relayoutContext: GameSettings = GameSettings(
+      textSizeCache = new TextSizeCache(ctx),
+      defaultFont = Font(12, "Verdana"),
+      defaultTextColor = TextColor(
         normal = Color.Red,
         highlighted = Color.Yellow
-      )
-    }
+      ),
+      tileSize = 20,
+      zoneSize = Size(40, 40)
+    )
 
     implicit val world: World = new World
     val canvas = new Canvas()
     var keysToProcess: Set[Int] = Set()
-    val logFps = true
 
     dom.window.onmousemove = { e: MouseEvent =>
       canvas.mouseMove(Coordinates(e.clientX.toInt, e.clientY.toInt))
@@ -44,11 +43,11 @@ object Game extends PerformanceTesting {
     }
 
     dom.window.setInterval(() => {
-      measureFps {
+//      measureFps {
         canvas.processKeyTouches(keysToProcess)
         canvas.clear()
         canvas.draw()
-      }
+//      }
     }, 1000 / 60)
 
     dom.window.onkeydown = { e: KeyboardEvent =>

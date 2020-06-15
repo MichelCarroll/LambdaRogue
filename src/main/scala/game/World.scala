@@ -90,8 +90,7 @@ class SmartGraphOperator(zoneId: NodeID, renderMap: RenderMap, graph: WorldGraph
 
 }
 
-class World extends GraphQuerying {
-
+class World(implicit gameSettings: GameSettings) extends GraphQuerying {
 
   val renderMap: RenderMap = mutable.Map[Coordinates, mutable.ArrayBuffer[RenderLayer]]()
 
@@ -106,7 +105,7 @@ class World extends GraphQuerying {
 
   def initialize(): Unit = {
     val builder = new ZoneBuilder(graph)
-    builder.square(Area(Coordinates(0,0), Size(100,100)))
+    builder.square(Area(Coordinates(0,0), gameSettings.zoneSize))
     currentZoneId = Some(builder.zoneId)
 
     graph.queryFrom(builder.zoneId).collect {

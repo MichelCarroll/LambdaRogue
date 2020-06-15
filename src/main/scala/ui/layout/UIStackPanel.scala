@@ -1,6 +1,6 @@
 package ui.layout
 
-import ui.{Edges, LayoutContext}
+import ui.{Edges}
 import common._
 
 class UIStackPanel(
@@ -11,7 +11,7 @@ class UIStackPanel(
 
   var naturalSize = Size(0,0)
 
-  override def resize()(implicit context: LayoutContext): Unit = {
+  override def resize()(implicit context: GameSettings): Unit = {
     super.resize()
 
     naturalSize = Size(
@@ -23,7 +23,7 @@ class UIStackPanel(
     )
   }
 
-  override def relayout()(implicit context: LayoutContext): Unit = {
+  override def relayout()(implicit context: GameSettings): Unit = {
     var accumY = padding.top
     children.foreach { child =>
       child.coordinates = Coordinates(

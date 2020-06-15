@@ -16,22 +16,14 @@ class Canvas()(
   var hoveringClickableElement: Option[UIObject] = None
   val clickMap = new ClickMap()
   var lastMousePosition: Coordinates = Coordinates(0, 0)
-  var lastKeyDownCode: Int = -1
 
-  def keyUp(keyCode: Int): Unit = {
-    lastKeyDownCode = -1
-  }
-
-  def keyDown(keyCode: Int): Unit = {
-    if(keyCode != lastKeyDownCode) {
-      lastKeyDownCode = keyCode
-      keyCode match {
-        case KeyCode.Up => executeAction(Move(Up))
-        case KeyCode.Down => executeAction(Move(Down))
-        case KeyCode.Right => executeAction(Move(Right))
-        case KeyCode.Left => executeAction(Move(Left))
-        case _ =>
-      }
+  def processKeyTouches(keyCodes: Set[Int]): Unit = {
+    keyCodes.foreach {
+      case KeyCode.Up => executeAction(Move(Up))
+      case KeyCode.Down => executeAction(Move(Down))
+      case KeyCode.Right => executeAction(Move(Right))
+      case KeyCode.Left => executeAction(Move(Left))
+      case _ =>
     }
   }
 

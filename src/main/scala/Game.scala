@@ -1,18 +1,19 @@
 import org.scalajs.dom
 import org.scalajs.dom.ext.Color
-import org.scalajs.dom.html.{Canvas => HtmlCanvas}
+import org.scalajs.dom.html.{Div, Paragraph, Canvas => HtmlCanvas}
 import org.scalajs.dom.raw.{KeyboardEvent, MouseEvent}
 import ui._
 import game._
 import common._
+import debug.PerformanceTesting
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
 @JSExportTopLevel("Game")
-object Game {
+object Game extends PerformanceTesting {
 
   @JSExport
-  def start(htmlCanvasElement: HtmlCanvas): Unit = {
+  def start(htmlCanvasElement: HtmlCanvas, mainDiv: Div): Unit = {
 
     implicit val ctx: dom.CanvasRenderingContext2D =
       htmlCanvasElement.getContext("2d")
@@ -30,8 +31,9 @@ object Game {
     }
 
     implicit val world: World = new World
-
     val canvas = new Canvas()
+    var keysToProcess: Set[Int] = Set()
+    val logFps = true
 
     dom.window.onmousemove = { e: MouseEvent =>
       canvas.mouseMove(Coordinates(e.clientX.toInt, e.clientY.toInt))
@@ -42,16 +44,19 @@ object Game {
     }
 
     dom.window.setInterval(() => {
-      canvas.clear()
-      canvas.draw()
-    }, 50)
+      measureFps {
+        canvas.processKeyTouches(keysToProcess)
+        canvas.clear()
+        canvas.draw()
+      }
+    }, 1000 / 60)
 
     dom.window.onkeydown = { e: KeyboardEvent =>
-      canvas.keyDown(e.keyCode)
+      keysToProcess += e.keyCode
     }
 
     dom.window.onkeyup = { e: KeyboardEvent =>
-      canvas.keyUp(e.keyCode)
+      keysToProcess -= e.keyCode
     }
   }
 

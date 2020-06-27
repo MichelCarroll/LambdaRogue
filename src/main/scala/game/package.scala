@@ -1,4 +1,4 @@
-import graph.Graph
+import graph.{Graph, GraphLike}
 import common._
 import org.scalajs.dom.ext.Color
 
@@ -68,5 +68,6 @@ package object game extends ColorOperations {
   case class PositionedAt(zonePosition: Coordinates) extends Relationship
 
   type WorldGraph = Graph[Entity, Relationship]
+  type WorldGraphLike = GraphLike[Entity, Relationship]
   type RenderMap = mutable.Map[Coordinates, mutable.ArrayBuffer[RenderLayer]]
 }

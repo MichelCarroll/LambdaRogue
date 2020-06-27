@@ -4,6 +4,7 @@ import game._
 import game.actions.MoveCharacter
 import ui.layout._
 import common._
+import game.world.World
 
 sealed trait UIState {
   def execute(action: UIAction): UIState

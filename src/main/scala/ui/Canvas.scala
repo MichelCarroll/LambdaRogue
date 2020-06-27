@@ -1,10 +1,10 @@
 package ui
 
-import game.World
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.raw.CanvasRenderingContext2D
 import ui.layout.UIObject
 import common._
+import game.world.World
 
 class Canvas()(
   implicit ctx: CanvasRenderingContext2D,

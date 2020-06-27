@@ -1,8 +1,9 @@
 package ui.layout
 
-import game.{FullSquare, MediumSquare, World}
+import game.{FullSquare, MediumSquare}
 import org.scalajs.dom.raw.CanvasRenderingContext2D
 import common._
+import game.world.World
 import ui.{InspectGameWorld, UIAction}
 
 

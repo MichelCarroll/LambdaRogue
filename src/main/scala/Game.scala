@@ -6,6 +6,7 @@ import ui._
 import game._
 import common._
 import debug.PerformanceTesting
+import game.world.World
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 

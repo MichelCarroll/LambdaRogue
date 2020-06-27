@@ -1,34 +1,20 @@
-package game
+package game.world
 
-import game.actions.{GameAction, MoveCharacter}
-import graph.{EdgeID, GraphQuerying, NodeID}
 import common._
-import generator.TerrainGenerator
-import random.{Cloudy, PerlinNoise2D}
+import game._
+import game.actions.{GameAction, MoveCharacter}
+import game.world.command.Move
+import graph.{EdgeID, GraphQuerying, NodeID}
 
 import scala.collection.mutable
 
-class ZoneBuilder(graph: WorldGraph) {
 
-  val zoneId: NodeID = graph.add(Zone)
+class CachedWorldGraph(renderMap: RenderMap) extends WorldGraph with GraphQuerying {
 
-  def square(area: Area): Unit = {
-    val terrainGenerator = new TerrainGenerator()
-    val perlinNoise2D = new PerlinNoise2D(Cloudy, resolution = 500)
-    terrainGenerator.make(area, perlinNoise2D, zoneId, graph)
-  }
-
-}
-
-class SmartGraphOperator(zoneId: NodeID, renderMap: RenderMap, graph: WorldGraph) extends GraphQuerying  {
-
-  val R = graph.Result
-
-  def add(attributes: Entity): NodeID = graph.add(attributes)
-  def remove(id: NodeID): Unit = graph.remove(id)
+  val R = this.Result
 
   private def traverse(node: NodeID): Unit = {
-    graph.queryFrom(node).collect {
+    this.queryFrom(node).collect {
       case R(_,_,_,StandingOn,containerId,_) =>
         traverse(containerId)
       case R(tileId,_,_,PositionedAt(position),_,_) =>
@@ -36,16 +22,16 @@ class SmartGraphOperator(zoneId: NodeID, renderMap: RenderMap, graph: WorldGraph
     }
   }
 
-  def add(from: NodeID, attributes: Relationship, to: NodeID): EdgeID = {
-    val edgeId = graph.add(from, attributes, to)
+  override def add(from: NodeID, attributes: Relationship, to: NodeID): EdgeID = {
+    val edgeId = super.add(from, attributes, to)
     traverse(from)
     traverse(to)
     edgeId
   }
 
-  def remove(id: EdgeID): Unit = {
-    val edge = graph.at(id)
-    graph.remove(id)
+  override def remove(id: EdgeID): Unit = {
+    val edge = this.at(id)
+    super.remove(id)
     traverse(edge.to)
     traverse(edge.from)
   }
@@ -54,7 +40,7 @@ class SmartGraphOperator(zoneId: NodeID, renderMap: RenderMap, graph: WorldGraph
 
   def executeRenderMapTransaction(): Unit = {
     tileToUpdate.foreach { case (tileId, zonePosition) =>
-      val visible = graph.at(tileId).asInstanceOf[Tile]
+      val visible = this.at(tileId).asInstanceOf[Tile]
       updateRenderMap(visible, tileId, zonePosition)
     }
     tileToUpdate.clear()
@@ -65,7 +51,7 @@ class SmartGraphOperator(zoneId: NodeID, renderMap: RenderMap, graph: WorldGraph
     val buffer = new mutable.ArrayBuffer[RenderLayer]()
     buffer.append(tile.renderLayer)
     renderMap.update(zonePosition, buffer)
-    graph.queryTo(tileId)
+    this.queryTo(tileId)
       .filter(_.edge == StandingOn)
       .map(_.from)
       .collect {
@@ -74,10 +60,10 @@ class SmartGraphOperator(zoneId: NodeID, renderMap: RenderMap, graph: WorldGraph
       }
   }
 
-  def updateWholeRenderMap(): Unit = {
+  def updateWholeRenderMap(zoneId: NodeID): Unit = {
     renderMap.clear()
 
-    graph.queryTo(zoneId).collect {
+    this.queryTo(zoneId).collect {
       case R(tileId, tile: Tile,_,PositionedAt(zonePosition), _, _) =>
         updateRenderMap(tile, tileId, zonePosition)
     }
@@ -85,17 +71,12 @@ class SmartGraphOperator(zoneId: NodeID, renderMap: RenderMap, graph: WorldGraph
 
 }
 
-case class InspectionResult()
-
 class World(implicit gameSettings: GameSettings) extends GraphQuerying {
 
   val renderMap: RenderMap = mutable.Map[Coordinates, mutable.ArrayBuffer[RenderLayer]]()
-
-  private val graph = new WorldGraph
-  var graphOperator: Option[SmartGraphOperator] = None
+  private val graph = new CachedWorldGraph(renderMap)
   var characterCreation = new CharacterCreation
   val R = graph.Result
-
 
   var currentZoneId: Option[NodeID] = None
   var currentCharacter: Option[NodeID] = None
@@ -111,9 +92,7 @@ class World(implicit gameSettings: GameSettings) extends GraphQuerying {
         currentCharacter = Some(character)
         graph.add(character, StandingOn, tileId)
     }
-    val operator = new SmartGraphOperator(builder.zoneId, renderMap, graph)
-    graphOperator = Some(operator)
-    operator.updateWholeRenderMap()
+    graph.updateWholeRenderMap(builder.zoneId)
   }
 
   def execute(gameAction: GameAction): Unit = {
@@ -121,31 +100,11 @@ class World(implicit gameSettings: GameSettings) extends GraphQuerying {
       case MoveCharacter(direction) =>
         (currentCharacter, currentZoneId) match {
           case (Some(charId), Some(zoneId)) =>
-            for {
-              R(_,_,edgeId,_,oldTileId,_) <- graph
-                .queryFrom(charId)
-                .filter(_.edge == StandingOn)
-
-              R(_,_,_,PositionedAt(zonePosition),_,_) <- graph
-                .queryTo(zoneId)
-                .filter(_.fromId == oldTileId)
-
-              newPosition = zonePosition.displaced(direction)
-
-              R(newTileId,_,_,_,_,_) <- graph
-                .queryTo(zoneId)
-                .filter(_.edge == PositionedAt(newPosition))
-
-            } yield {
-              graphOperator.foreach { g =>
-                g.remove(edgeId)
-                g.add(charId, StandingOn, newTileId)
-              }
-            }
+            new Move(graph, charId, zoneId, direction).execute()
           case _ =>
         }
     }
-    graphOperator.foreach(_.executeRenderMapTransaction())
+    graph.executeRenderMapTransaction()
   }
 
 }

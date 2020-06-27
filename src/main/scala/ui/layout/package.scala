@@ -1,8 +1,8 @@
 package ui
 
-import game.World
 import org.scalajs.dom.raw.CanvasRenderingContext2D
 import common._
+import game.world.World
 
 package object layout {
 

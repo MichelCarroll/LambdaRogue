@@ -5,6 +5,7 @@ import game.actions.MoveCharacter
 import ui.layout._
 import common._
 import game.world.World
+import game.world.command.InspectionResult
 
 sealed trait UIState {
   def execute(action: UIAction): UIState
@@ -56,6 +57,13 @@ case class WorldView(implicit val gameSettings: GameSettings, world: World) exte
       world.execute(MoveCharacter(dir))
       this
     case InspectGameWorld(zonePosition) =>
+      world.inspect(zonePosition) match {
+        case None =>
+        case Some(InspectionResult(Seq())) =>
+          println("You see nothing here")
+        case Some(InspectionResult(results)) =>
+          println(s"You see: ${results.mkString(", and ")}")
+      }
       this
     case _ => this
   }

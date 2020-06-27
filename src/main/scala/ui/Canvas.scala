@@ -32,7 +32,6 @@ class Canvas()(
       elem <- hoveringClickableElement
       action <- elem.onClick(coordinates)
     } {
-      println(action)
       executeAction(action)
     }
   }

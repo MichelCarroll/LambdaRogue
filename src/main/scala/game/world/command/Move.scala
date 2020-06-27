@@ -5,7 +5,7 @@ import graph.NodeID
 import common._
 
 
-class Move(val worldGraph: WorldGraph, targetId: NodeID, zoneId: NodeID, direction: Direction) extends WorldCommand {
+class Move(val worldGraph: WorldGraph, targetId: NodeID, zoneId: NodeID, direction: Direction) extends WorldCommand[Unit] {
 
   def execute(): Unit = {
     for {

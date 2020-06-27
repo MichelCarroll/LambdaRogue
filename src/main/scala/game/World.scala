@@ -1,13 +1,12 @@
 package game
 
 import game.actions.{GameAction, MoveCharacter}
-import graph.{EdgeID, GraphLike, GraphQuerying, NodeID}
+import graph.{EdgeID, GraphQuerying, NodeID}
 import common._
 import generator.TerrainGenerator
 import random.{Cloudy, PerlinNoise2D}
 
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 
 class ZoneBuilder(graph: WorldGraph) {
 
@@ -55,36 +54,32 @@ class SmartGraphOperator(zoneId: NodeID, renderMap: RenderMap, graph: WorldGraph
 
   def executeRenderMapTransaction(): Unit = {
     tileToUpdate.foreach { case (tileId, zonePosition) =>
-      val tile = graph.at(tileId).asInstanceOf[Tile]
-      val buffer = new mutable.ArrayBuffer[RenderLayer]()
-      buffer.append(tile.renderLayer)
-      renderMap.update(zonePosition, buffer)
-      graph.queryTo(tileId)
-        .filter(_.edge == StandingOn)
-        .map(_.from)
-        .collect {
-          case visible: Visible =>
-            renderMap(zonePosition).append(visible.renderLayer)
-        }
+      val visible = graph.at(tileId).asInstanceOf[Tile]
+      updateRenderMap(visible, tileId, zonePosition)
     }
     tileToUpdate.clear()
+  }
+
+
+  private def updateRenderMap(tile: Tile, tileId: NodeID, zonePosition: Coordinates): Unit = {
+    val buffer = new mutable.ArrayBuffer[RenderLayer]()
+    buffer.append(tile.renderLayer)
+    renderMap.update(zonePosition, buffer)
+    graph.queryTo(tileId)
+      .filter(_.edge == StandingOn)
+      .map(_.from)
+      .collect {
+        case visible: Visible =>
+          renderMap(zonePosition).append(visible.renderLayer)
+      }
   }
 
   def updateWholeRenderMap(): Unit = {
     renderMap.clear()
 
     graph.queryTo(zoneId).collect {
-      case R(tileId, visible: Visible,_,PositionedAt(zonePosition), _, _) =>
-        val buffer = new mutable.ArrayBuffer[RenderLayer]()
-        buffer.append(visible.renderLayer)
-        renderMap.update(zonePosition, buffer)
-        graph.queryTo(tileId)
-          .filter(_.edge == StandingOn)
-          .map(_.from)
-          .collect {
-            case visible: Visible =>
-              renderMap(zonePosition).append(visible.renderLayer)
-          }
+      case R(tileId, tile: Tile,_,PositionedAt(zonePosition), _, _) =>
+        updateRenderMap(tile, tileId, zonePosition)
     }
   }
 

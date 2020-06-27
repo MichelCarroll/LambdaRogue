@@ -13,7 +13,7 @@ class UITextButton(
                   ) extends UIObject {
   override def children: List[UIObject] = List.empty
 
-  override def onClick: Option[UIAction] = Some(action)
+  override def onClick(coordinates: Coordinates): Option[UIAction] = Some(action)
 
   override var naturalSize: Size = Size(0,0)
 

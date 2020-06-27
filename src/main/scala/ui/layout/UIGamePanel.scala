@@ -3,10 +3,21 @@ package ui.layout
 import game.{FullSquare, MediumSquare, World}
 import org.scalajs.dom.raw.CanvasRenderingContext2D
 import common._
+import ui.{InspectGameWorld, UIAction}
 
 
-class UIGamePanel(tileSize: Int, var naturalSize: Size) extends UIObject {
+class UIGamePanel(tileSize: Int, var naturalSize: Size)(implicit val world: World) extends UIObject {
   val children: List[UIObject] = List.empty
+
+  override def onClick(coordinates: Coordinates): Option[UIAction] = {
+    zonePosition(coordinates).map(InspectGameWorld)
+  }
+
+  private def zonePosition(coordinates: Coordinates): Option[Coordinates] = {
+    val tileX = coordinates.x / tileSize
+    val tileY = coordinates.y / tileSize
+    Some(Coordinates(tileX, tileY))
+  }
 
   override def draw(debug: Boolean, hoveringClickableElement: Option[UIObject])
                    (implicit ctx: CanvasRenderingContext2D, world: World): Unit = {

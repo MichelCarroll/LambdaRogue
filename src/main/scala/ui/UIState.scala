@@ -6,13 +6,13 @@ import ui.layout._
 import common._
 
 sealed trait UIState {
-  def execute(action: UIAction)(implicit world: World): UIState
+  def execute(action: UIAction): UIState
   val rootUIElement: UIObject
 }
 
-case class GenderSelection(implicit val gameSettings: GameSettings) extends UIState {
+case class GenderSelection(implicit val gameSettings: GameSettings, world: World) extends UIState {
 
-  override def execute(action: UIAction)(implicit world: World): UIState = action match {
+  override def execute(action: UIAction): UIState = action match {
     case ChooseGender(gender) =>
       world.characterCreation.gender = gender
       BackgroundSelection()
@@ -29,8 +29,8 @@ case class GenderSelection(implicit val gameSettings: GameSettings) extends UISt
 
 }
 
-case class BackgroundSelection(implicit val gameSettings: GameSettings) extends UIState {
-  override def execute(action: UIAction)(implicit world: World): UIState = action match {
+case class BackgroundSelection(implicit val gameSettings: GameSettings, world: World) extends UIState {
+  override def execute(action: UIAction): UIState = action match {
     case ChoosePlayerBackground(background) =>
       world.characterCreation.characterBackground = background
       world.initialize()
@@ -49,8 +49,8 @@ case class BackgroundSelection(implicit val gameSettings: GameSettings) extends 
 
 }
 
-case class WorldView(implicit val gameSettings: GameSettings) extends UIState {
-  override def execute(action: UIAction)(implicit world: World): UIState = action match {
+case class WorldView(implicit val gameSettings: GameSettings, world: World) extends UIState {
+  override def execute(action: UIAction): UIState = action match {
     case Move(dir) =>
       world.execute(MoveCharacter(dir))
       this

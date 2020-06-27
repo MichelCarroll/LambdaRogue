@@ -12,7 +12,7 @@ package object layout {
     def children: List[UIObject]
     def padding: Edges = Edges.none
     def margin: Edges = Edges.none
-    def onClick: Option[UIAction] = None
+    def onClick(coordinates: Coordinates): Option[UIAction] = None
 
     var coordinates: Coordinates = Coordinates(0,0)
     var naturalSize: Size

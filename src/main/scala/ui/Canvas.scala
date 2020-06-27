@@ -30,8 +30,9 @@ class Canvas()(
   def click(coordinates: Coordinates): Unit = {
     for {
       elem <- hoveringClickableElement
-      action <- elem.onClick
+      action <- elem.onClick(coordinates)
     } {
+      println(action)
       executeAction(action)
     }
   }

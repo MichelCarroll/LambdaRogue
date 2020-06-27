@@ -9,6 +9,7 @@ import debug.PerformanceTesting
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
+
 @JSExportTopLevel("Game")
 object Game extends PerformanceTesting {
 
@@ -27,7 +28,7 @@ object Game extends PerformanceTesting {
         highlighted = Color.Yellow
       ),
       tileSize = 20,
-      zoneSize = Size(40, 40)
+      zoneSize = Size(40, 30)
     )
 
     implicit val world: World = new World

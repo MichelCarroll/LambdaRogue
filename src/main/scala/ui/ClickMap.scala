@@ -6,29 +6,30 @@ import common._
 
 class ClickMap(resolution: Int = 5) {
 
-  val elements = mutable.Map[Cell, UIObject]()
+  val elements = mutable.Map[Coordinates, UIObject]()
 
-  case class Cell(x: Int, y: Int)
-
-  private def objectCells(obj: UIObject): Seq[Cell] = {
+  private def objectCells(obj: UIObject): Seq[Coordinates] = {
     val minX = obj.coordinates.x / resolution
     val maxX = ((obj.coordinates.x + obj.innerWidth) / resolution.toFloat - 1).ceil.toInt
     val minY = obj.coordinates.y / resolution
     val maxY = ((obj.coordinates.y + obj.innerHeight) / resolution.toFloat - 1).ceil.toInt
 
     for {
-      cellX <- minX to maxX
-      cellY <- minY to maxY
-    } yield Cell(cellX, cellY)
+      x <- minX to maxX
+      y <- minY to maxY
+    } yield Coordinates(x, y)
   }
 
   def recompute(rootObject: UIObject): Unit = {
     elements.clear()
 
     def recurAddObjects(obj: UIObject): Unit = {
-      val cells = objectCells(obj)
-      if(obj.onClick.nonEmpty)
-        cells.foreach { cell => elements += cell -> obj }
+      val coordinates = objectCells(obj)
+      coordinates.foreach { coord =>
+        obj.onClick(coord).foreach { action =>
+          elements += coord -> obj
+        }
+      }
       obj.children.foreach(recurAddObjects)
     }
 
@@ -36,8 +37,8 @@ class ClickMap(resolution: Int = 5) {
   }
 
   def testClick(coordinates: Coordinates): Option[UIObject] = {
-    val cell = Cell(coordinates.x / resolution, coordinates.y / resolution)
-    elements.get(cell)
+    val coord = Coordinates(coordinates.x / resolution, coordinates.y / resolution)
+    elements.get(coord)
   }
 
 }

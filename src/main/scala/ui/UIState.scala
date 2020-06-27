@@ -54,6 +54,8 @@ case class WorldView(implicit val gameSettings: GameSettings, world: World) exte
     case Move(dir) =>
       world.execute(MoveCharacter(dir))
       this
+    case InspectGameWorld(zonePosition) =>
+      this
     case _ => this
   }
   val rootUIElement = new UIGamePanel(gameSettings.tileSize, gameSettings.canvasSize)

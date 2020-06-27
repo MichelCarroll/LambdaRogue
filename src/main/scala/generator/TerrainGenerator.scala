@@ -18,9 +18,9 @@ class TerrainGenerator {
         case x if x <= 1.0 => Grass(Full)
       }
       graph.add(
-        zoneId,
-        Positions(point),
-        graph.add(Tile(tileMaterial))
+        graph.add(Tile(tileMaterial)),
+        PositionedAt(point),
+        zoneId
       )
     }
   }

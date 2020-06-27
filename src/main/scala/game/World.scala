@@ -29,10 +29,10 @@ class SmartGraphOperator(zoneId: NodeID, renderMap: RenderMap, graph: WorldGraph
   def remove(id: NodeID): Unit = graph.remove(id)
 
   private def traverse(node: NodeID): Unit = {
-    graph.queryTo(node).collect {
-      case R(containerId,_,_,Contains,_,_) =>
+    graph.queryFrom(node).collect {
+      case R(_,_,_,StandingOn,containerId,_) =>
         traverse(containerId)
-      case R(_,_,_,Positions(position),tileId,_) =>
+      case R(tileId,_,_,PositionedAt(position),_,_) =>
         tileToUpdate.add((tileId, position))
     }
   }
@@ -59,9 +59,9 @@ class SmartGraphOperator(zoneId: NodeID, renderMap: RenderMap, graph: WorldGraph
       val buffer = new mutable.ArrayBuffer[RenderLayer]()
       buffer.append(tile.renderLayer)
       renderMap.update(zonePosition, buffer)
-      graph.queryFrom(tileId)
-        .filter(_.edge == Contains)
-        .map(_.to)
+      graph.queryTo(tileId)
+        .filter(_.edge == StandingOn)
+        .map(_.from)
         .collect {
           case visible: Visible =>
             renderMap(zonePosition).append(visible.renderLayer)
@@ -73,14 +73,14 @@ class SmartGraphOperator(zoneId: NodeID, renderMap: RenderMap, graph: WorldGraph
   def updateWholeRenderMap(): Unit = {
     renderMap.clear()
 
-    graph.queryFrom(zoneId).collect {
-      case R(_,_,_,Positions(zonePosition), tileId, visible: Visible) =>
+    graph.queryTo(zoneId).collect {
+      case R(tileId, visible: Visible,_,PositionedAt(zonePosition), _, _) =>
         val buffer = new mutable.ArrayBuffer[RenderLayer]()
         buffer.append(visible.renderLayer)
         renderMap.update(zonePosition, buffer)
-        graph.queryFrom(tileId)
-          .filter(_.edge == Contains)
-          .map(_.to)
+        graph.queryTo(tileId)
+          .filter(_.edge == StandingOn)
+          .map(_.from)
           .collect {
             case visible: Visible =>
               renderMap(zonePosition).append(visible.renderLayer)
@@ -89,6 +89,8 @@ class SmartGraphOperator(zoneId: NodeID, renderMap: RenderMap, graph: WorldGraph
   }
 
 }
+
+case class InspectionResult()
 
 class World(implicit gameSettings: GameSettings) extends GraphQuerying {
 
@@ -108,11 +110,11 @@ class World(implicit gameSettings: GameSettings) extends GraphQuerying {
     builder.square(Area(Coordinates(0,0), gameSettings.zoneSize))
     currentZoneId = Some(builder.zoneId)
 
-    graph.queryFrom(builder.zoneId).collect {
-      case R(_, _, _, Positions(Coordinates(4,4)), tileId, _) =>
+    graph.queryTo(builder.zoneId).collect {
+      case R(tileId, _, _, PositionedAt(Coordinates(4,4)), _, _) =>
         val character = graph.add(characterCreation.build())
         currentCharacter = Some(character)
-        graph.add(tileId, Contains, character)
+        graph.add(character, StandingOn, tileId)
     }
     val operator = new SmartGraphOperator(builder.zoneId, renderMap, graph)
     graphOperator = Some(operator)
@@ -125,24 +127,24 @@ class World(implicit gameSettings: GameSettings) extends GraphQuerying {
         (currentCharacter, currentZoneId) match {
           case (Some(charId), Some(zoneId)) =>
             for {
-              R(oldTileId,_,edgeId,_,_,_) <- graph
-                .queryTo(charId)
-                .filter(_.edge == Contains)
+              R(_,_,edgeId,_,oldTileId,_) <- graph
+                .queryFrom(charId)
+                .filter(_.edge == StandingOn)
 
-              R(_,_,_,Positions(zonePosition),_,_) <- graph
-                .queryFrom(zoneId)
-                .filter(_.toId == oldTileId)
+              R(_,_,_,PositionedAt(zonePosition),_,_) <- graph
+                .queryTo(zoneId)
+                .filter(_.fromId == oldTileId)
 
               newPosition = zonePosition.displaced(direction)
 
-              R(_,_,_,_,newTileId,_) <- graph
-                .queryFrom(zoneId)
-                .filter(_.edge == Positions(newPosition))
+              R(newTileId,_,_,_,_,_) <- graph
+                .queryTo(zoneId)
+                .filter(_.edge == PositionedAt(newPosition))
 
             } yield {
               graphOperator.foreach { g =>
                 g.remove(edgeId)
-                g.add(newTileId, Contains, charId)
+                g.add(charId, StandingOn, newTileId)
               }
             }
           case _ =>

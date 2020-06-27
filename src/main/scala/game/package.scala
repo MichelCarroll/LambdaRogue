@@ -64,8 +64,8 @@ package object game extends ColorOperations {
   }
 
   sealed trait Relationship
-  case object Contains extends Relationship
-  case class Positions(zonePosition: Coordinates) extends Relationship
+  case object StandingOn extends Relationship
+  case class PositionedAt(zonePosition: Coordinates) extends Relationship
 
   type WorldGraph = Graph[Entity, Relationship]
   type RenderMap = mutable.Map[Coordinates, mutable.ArrayBuffer[RenderLayer]]
